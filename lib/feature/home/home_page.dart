@@ -104,6 +104,7 @@ class _HomePageState extends State<HomePage> {
             }
           }
         }
+        showSnackBar(context, message: "Game Over!!!");
       } else if (_checkForWin()) {
         // Game won - show all cells
         gameOver = true;
@@ -113,6 +114,7 @@ class _HomePageState extends State<HomePage> {
             cell.isOpen = true;
           }
         }
+        showSnackBar(context, message: "Congratulation :D");
       } else if (cell.adjacentMines == 0) {
         // Open adjacent cells if there are no mines nearby
         _openAdjacentCells(cell.row, cell.col);
@@ -134,6 +136,76 @@ class _HomePageState extends State<HomePage> {
     }
 
     return true;
+  }
+
+  /// open neibour cell untill found a mines
+  void _openAdjacentCells(int row, int col) {
+    /// open neigbour cells
+    for (final dir in directions) {
+      int newRow = row + dir.dy.toInt();
+      int newCol = col + dir.dx.toInt();
+
+      /// if not open and not mines
+      if (_isValidCell(newRow, newCol) &&
+          !grid[newRow][newCol].hasMine &&
+          !grid[newRow][newCol].isOpen) {
+        setState(() {
+          // open the cell
+          grid[newRow][newCol].isOpen = true;
+          // and check if its has no mines in suroinding
+          /// open adjacentCells in that position
+
+          /// this process will get loop untul it find a mines
+          if (grid[newRow][newCol].adjacentMines == 0) {
+            _openAdjacentCells(newRow, newCol);
+          }
+        });
+      }
+    }
+    if (gameOver) return;
+
+    if (_checkForWin()) {
+      gameOver = true;
+      for (final row in grid) {
+        for (final cell in row) {
+          if (cell.hasMine) {
+            cell.isOpen = true;
+          }
+        }
+      }
+      showSnackBar(context, message: "Congratulation :D");
+    }
+  }
+
+  void _handleCellLongPress(Cell cell) {
+    if (cell.isOpen) return;
+    if (flagCount <= 0 && !cell.isFlagged) return;
+
+    setState(() {
+      cell.isFlagged = !cell.isFlagged;
+
+      if (cell.isFlagged) {
+        flagCount--;
+      } else {
+        flagCount++;
+      }
+    });
+  }
+
+  void _reset() {
+    setState(() {
+      grid = [];
+      gameOver = false;
+      flagCount = 10;
+    });
+
+    _intializeGrid();
+  }
+
+  void showSnackBar(BuildContext context, {required String message}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
+    );
   }
 
   @override
@@ -160,11 +232,14 @@ class _HomePageState extends State<HomePage> {
                       "Flag",
                       style: Theme.of(context).textTheme.headlineSmall,
                     ),
-                    Text("0", style: Theme.of(context).textTheme.headlineLarge),
+                    Text(
+                      flagCount.toString(),
+                      style: Theme.of(context).textTheme.headlineLarge,
+                    ),
                   ],
                 ),
                 ElevatedButton.icon(
-                  onPressed: () {},
+                  onPressed: _reset,
                   icon: const Icon(Icons.restart_alt),
                   label: const Text("Reset"),
                   style: ElevatedButton.styleFrom(
@@ -194,6 +269,7 @@ class _HomePageState extends State<HomePage> {
 
               return GestureDetector(
                 onTap: () => _handleCellTap(cell),
+                onLongPress: () => _handleCellLongPress(cell),
                 child: Container(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(8),
