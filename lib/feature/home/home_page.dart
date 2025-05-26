@@ -12,8 +12,11 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int rows = 12;
   int columns = 8;
-  int totalMines = 2;
+  int totalMines = 10;
   List<List<Cell>> grid = [];
+
+  int flagCount = 10;
+  bool gameOver = false;
 
   @override
   void initState() {
@@ -28,7 +31,109 @@ class _HomePageState extends State<HomePage> {
       (row) => List.generate(columns, (col) => Cell(row: row, col: col)),
     );
 
+    // Add mines to random cells
+    final random = Random();
+    int count = 0;
+    while (count < totalMines) {
+      int randomRow = random.nextInt(rows);
+      int randomCol = random.nextInt(columns);
+      if (!grid[randomRow][randomCol].hasMine) {
+        grid[randomRow][randomCol].hasMine = true;
+        count++;
+      }
+    }
 
+    // Calculate adjacent mines for each cell
+    // a number 0-8 base on surounding / neighbour mines
+    for (int row = 0; row < rows; row++) {
+      for (int col = 0; col < columns; col++) {
+        /// has mines no nothing
+        if (grid[row][col].hasMine) continue;
+
+        int adjacentMines = 0;
+        for (final dir in directions) {
+          int newRow = row + dir.dy.toInt();
+          int newCol = col + dir.dx.toInt();
+
+          if (_isValidCell(newRow, newCol) && grid[newRow][newCol].hasMine) {
+            adjacentMines++;
+          }
+        }
+
+        /// adjacentMines indicate the number of mines
+        /// in its sourounding / neighbour
+        grid[row][col].adjacentMines = adjacentMines;
+      }
+    }
+  }
+
+  /// [-1,-1] [-1,0] [-1,1]
+  ///
+  /// [0,-1] [cell] [0,1]
+  ///
+  /// [1,-1] [1,0] [1,1]
+  final directions = [
+    const Offset(-1, -1),
+    const Offset(-1, 0),
+    const Offset(-1, 1),
+    const Offset(0, -1),
+    const Offset(0, 1),
+    const Offset(1, -1),
+    const Offset(1, 0),
+    const Offset(1, 1),
+  ];
+
+  // check for valid cell
+  bool _isValidCell(int row, int col) {
+    return row >= 0 && row < rows && col >= 0 && col < columns;
+  }
+
+  void _handleCellTap(Cell cell) {
+    if (gameOver || cell.isOpen || cell.isFlagged) return;
+
+    setState(() {
+      cell.isOpen = true;
+
+      if (cell.hasMine) {
+        // Game over - show all mines
+        gameOver = true;
+        for (final row in grid) {
+          for (final cell in row) {
+            if (cell.hasMine) {
+              cell.isOpen = true;
+            }
+          }
+        }
+      } else if (_checkForWin()) {
+        // Game won - show all cells
+        gameOver = true;
+
+        for (final row in grid) {
+          for (final cell in row) {
+            cell.isOpen = true;
+          }
+        }
+      } else if (cell.adjacentMines == 0) {
+        // Open adjacent cells if there are no mines nearby
+        _openAdjacentCells(cell.row, cell.col);
+      }
+    });
+  }
+
+  bool _checkForWin() {
+    for (final row in grid) {
+      for (final cell in row) {
+        // chek if we still has un open cell
+        // that are not mines
+        // if we has on immidiate return
+        // indicate that the game still not over
+        if (!cell.hasMine && !cell.isOpen) {
+          return false;
+        }
+      }
+    }
+
+    return true;
   }
 
   @override
@@ -45,7 +150,7 @@ class _HomePageState extends State<HomePage> {
       body: ListView(
         children: [
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -88,6 +193,7 @@ class _HomePageState extends State<HomePage> {
               final cell = grid[row][col];
 
               return GestureDetector(
+                onTap: () => _handleCellTap(cell),
                 child: Container(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(8),
