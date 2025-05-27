@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:minesweeperapp/core/theme/app_color.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  final String difficulty;
+  const HomePage({super.key, required this.difficulty});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -18,10 +19,42 @@ class _HomePageState extends State<HomePage> {
   int flagCount = 10;
   bool gameOver = false;
 
+  final List<GameState> undoStack = [];
+  final int maxUndoSteps = 10;
+
   @override
   void initState() {
     super.initState();
+    _setDifficulty();
     _intializeGrid();
+  }
+
+  void _setDifficulty() {
+    switch (widget.difficulty) {
+      case 'easy':
+        rows = 8;
+        columns = 8;
+        totalMines = 10;
+        flagCount = 10;
+        break;
+      case 'medium':
+        rows = 12;
+        columns = 8;
+        totalMines = 20;
+        flagCount = 20;
+        break;
+      case 'hard':
+        rows = 16;
+        columns = 10;
+        totalMines = 30;
+        flagCount = 30;
+        break;
+      default:
+        rows = 8;
+        columns = 8;
+        totalMines = 10;
+        flagCount = 10;
+    }
   }
 
   void _intializeGrid() {
@@ -88,8 +121,34 @@ class _HomePageState extends State<HomePage> {
     return row >= 0 && row < rows && col >= 0 && col < columns;
   }
 
+  List<List<Cell>> copyGrid(List<List<Cell>> original) {
+    return original
+        .map(
+          (row) =>
+              row
+                  .map(
+                    (cell) => Cell(
+                      row: cell.row,
+                      col: cell.col,
+                      isOpen: cell.isOpen,
+                      hasMine: cell.hasMine,
+                      isFlagged: cell.isFlagged,
+                      adjacentMines: cell.adjacentMines,
+                    ),
+                  )
+                  .toList(),
+        )
+        .toList();
+  }
+
   void _handleCellTap(Cell cell) {
     if (gameOver || cell.isOpen || cell.isFlagged) return;
+
+    // add gameState to stack
+    undoStack.add(
+      GameState(grid: copyGrid(grid), flagCount: flagCount, gameOver: gameOver),
+    );
+    if (undoStack.length > maxUndoSteps) undoStack.removeAt(0);
 
     setState(() {
       cell.isOpen = true;
@@ -192,11 +251,26 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  void _undo() {
+    if (undoStack.isEmpty) {
+      showSnackBar(context, message: "Nothing to undo");
+      return;
+    }
+
+    final last = undoStack.removeLast();
+    setState(() {
+      grid = copyGrid(last.grid);
+      flagCount = last.flagCount;
+      gameOver = last.gameOver;
+    });
+  }
+
   void _reset() {
     setState(() {
       grid = [];
       gameOver = false;
-      flagCount = 10;
+      flagCount = totalMines;
+      undoStack.clear();
     });
 
     _intializeGrid();
@@ -238,16 +312,38 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ],
                 ),
-                ElevatedButton.icon(
-                  onPressed: _reset,
-                  icon: const Icon(Icons.restart_alt),
-                  label: const Text("Reset"),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColor.primaryColor,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+
+                // Put 2 buttons in 1 Wrap
+                Wrap(
+                  spacing: 8,
+                  children: [
+                    // UNDO
+                    ElevatedButton.icon(
+                      onPressed: _undo,
+                      icon: const Icon(Icons.undo),
+                      label: const Text("Undo"),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.orange,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
                     ),
-                  ),
+
+                    // RESET
+                    const SizedBox(width: 8),
+                    ElevatedButton.icon(
+                      onPressed: _reset,
+                      icon: const Icon(Icons.restart_alt),
+                      label: const Text("Reset"),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColor.primaryColor,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -335,5 +431,17 @@ class Cell {
     this.hasMine = false,
     this.isOpen = false,
     this.adjacentMines = 0,
+  });
+}
+
+class GameState {
+  final List<List<Cell>> grid;
+  final int flagCount;
+  final bool gameOver;
+
+  GameState({
+    required this.grid,
+    required this.flagCount,
+    required this.gameOver,
   });
 }
