@@ -23,7 +23,7 @@ A simple yet complete implementation of the classic **Minesweeper** game using *
 ## 📱 Screenshots
 
 ![GamePlay](lib/feature/home/Picture1_dsa.png)
-![GamePlay2](lib/feature/home/Picture1_dsa.png)
+![GamePlay2](lib/feature/home/Picture2_dsa.png)
 
 
 ---
