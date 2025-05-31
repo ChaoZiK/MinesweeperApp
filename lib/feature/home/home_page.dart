@@ -293,6 +293,7 @@ class _HomePageState extends State<HomePage> {
           style: Theme.of(context).textTheme.headlineSmall,
         ),
       ),
+      backgroundColor: Colors.white,
       body: ListView(
         children: [
           Padding(
@@ -300,19 +301,6 @@ class _HomePageState extends State<HomePage> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Column(
-                  children: [
-                    Text(
-                      "Flag",
-                      style: Theme.of(context).textTheme.headlineSmall,
-                    ),
-                    Text(
-                      flagCount.toString(),
-                      style: Theme.of(context).textTheme.headlineLarge,
-                    ),
-                  ],
-                ),
-
                 // Put 2 buttons in 1 Wrap
                 Wrap(
                   spacing: 8,
@@ -320,10 +308,16 @@ class _HomePageState extends State<HomePage> {
                     // UNDO
                     ElevatedButton.icon(
                       onPressed: _undo,
-                      icon: const Icon(Icons.undo),
-                      label: const Text("Undo"),
+                      icon: const Icon(
+                        Icons.undo,
+                        color: Colors.white,
+                      ),
+                      label: const Text(
+                        "Undo",
+                        style: TextStyle(color: Colors.white),
+                      ),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.orange,
+                        backgroundColor: Colors.blue,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
                         ),
@@ -334,14 +328,34 @@ class _HomePageState extends State<HomePage> {
                     const SizedBox(width: 8),
                     ElevatedButton.icon(
                       onPressed: _reset,
-                      icon: const Icon(Icons.restart_alt),
-                      label: const Text("Reset"),
+                      icon: const Icon(
+                        Icons.restart_alt,
+                        color: Colors.white,
+                      ),
+                      label: const Text(
+                        "Reset",
+                        style: TextStyle(color: Colors.white),
+                      ),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColor.primaryColor,
+                        backgroundColor: Colors.red,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
                         ),
                       ),
+                    ),
+                  ],
+                ),
+
+                // Swapped positions of Flag count and buttons
+                Column(
+                  children: [
+                    Text(
+                      "Flag",
+                      style: Theme.of(context).textTheme.headlineSmall,
+                    ),
+                    Text(
+                      flagCount.toString(),
+                      style: Theme.of(context).textTheme.headlineLarge,
                     ),
                   ],
                 ),
@@ -374,7 +388,7 @@ class _HomePageState extends State<HomePage> {
                             ? Colors.white
                             : cell.isFlagged
                             ? AppColor.primarySwatch[100]
-                            : AppColor.primaryColor,
+                            : Colors.pink,
                     boxShadow: [
                       BoxShadow(
                         blurRadius: 4,
