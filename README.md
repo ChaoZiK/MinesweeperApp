@@ -1,8 +1,3 @@
-
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
 # 🧨 Minesweeper Flutter App
 
 A simple yet complete implementation of the classic **Minesweeper** game using **Flutter**. The game includes multiple difficulty levels, an intuitive user interface, and features like undo and reset.
@@ -41,5 +36,11 @@ A simple yet complete implementation of the classic **Minesweeper** game using *
 ---
 
 ## 🧠 Architecture Overview
+This Flutter project follows a modular and clean architecture to separate concerns between UI, state, and logic.
 
+## 👨‍👩‍👧‍👦 Team Members
 
+This project was developed by the following team members:
+
+- 👨‍💻 [Tran The Phong](https://github.com/ChaoZiK)
+- 👨‍💻 [Pham Nguyen Dang Khoi](https://github.com/dangkhoi3107)
